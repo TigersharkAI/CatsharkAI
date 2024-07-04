@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Shark AI - Your Personal AI Assistant</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style id="mainStyle">
+        body {
+            font-family: 'Roboto', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #000000;
+            color: #e0e0e0;
+            transition: all 0.5s ease;
+        }
+        h1 {
+            color: #800000;
+            text-align: center;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px #000000;
+        }
+        #chatbox {
+            height: 400px;
+            border: 1px solid #800000;
+            padding: 15px;
+            overflow-y: scroll;
+            background-color: #0f0f0f;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(128, 0, 0, 0.5);
+        }
+        #userInput {
+            width: 70%;
+            padding: 12px;
+            background-color: #0f0f0f;
+            border: 1px solid #800000;
+            color: #e0e0e0;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        #sendButton {
+            width: 25%;
+            padding: 12px;
+            background-color: #800000;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 700;
+            transition: background-color 0.3s ease;
+        }
+        #sendButton:hover {
+            background-color: #600000;
+        }
+        .message {
+            margin-bottom: 10px;
+            position: relative;
+            padding-right: 30px;
+            line-height: 1.5;
+        }
+        .copyButton {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            background-color: #800000;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 2px 5px;
+            font-size: 12px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .message:hover .copyButton {
+            opacity: 1;
+        }
+        #languageNote {
+            text-align: center;
+            font-style: italic;
+            margin-top: 10px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cat Shark AI</h1>
+    <div id="chatbox"></div>
+    <input type="text" id="userInput" placeholder="Type your message here...">
+    <button id="sendButton" onclick="sendMessage()">Send</button>
+    <div id="languageNote">Note: This AI assistant only works in English.</div>
+
+    <script>
+        const chatbox = document.getElementById('chatbox');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+        let messageCount = 0;
+        let infiniteTokens = false;
+        let uwuMode = false;
+
+        const responses = {
+            "hello": "Hello! How can I assist you today?",
+            "hi": "Hi there! What can I help you with?",
+            "hey": "Hey! What's on your mind?",
+            "how are you": "As an AI, I don't have feelings, but I'm functioning optimally and ready to assist you!",
+            "what's your name": "My name is Cat Shark AI, your personal AI assistant.",
+            "who created you": "I was created by a user called TigersharkAI.",
+            "what can you do": "I can assist you with a wide range of tasks, from answering questions to providing recommendations. Feel free to ask me anything!",
+            "thank you": "You're welcome! Is there anything else I can help you with?",
+            "bye": "Goodbye! Feel free to chat with me again if you need any more assistance.",
+            "help": "I'm here to help! What kind of assistance do you need? You can ask me questions, request information, or even ask for a joke.",
+            "uwu": "UwU",
+            "you're cool": "Thank you! I'm glad you find me cool. I strive to be helpful and efficient.",
+            "your cool": "Thank you! I'm glad you find me cool. I strive to be helpful and efficient.",
+            "never gonna give you up": "Never gonna let you down",
+            "test": "Hello, it seems like you're testing if I am working"
+        };
+
+        const jokes = [
+            "Why don't scientists trust atoms? Because they make up everything!",
+            "Why did the scarecrow win an award? He was outstanding in his field!",
+            "Why don't eggs tell jokes? They'd crack each other up!",
+            "Why don't skeletons fight each other? They don't have the guts!",
+            "What do you call a fake noodle? An impasta!"
+        ];
+
+        const insults = ["fuck", "shit", "asshole", "bitch", "damn"];
+
+        function levenshteinDistance(a, b) {
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) {
+                matrix[i] = [i];
+            }
+            for (let j = 0; j <= a.length; j++) {
+                matrix[0][j] = j;
+            }
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) == a.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1,
+                            matrix[i][j - 1] + 1,
+                            matrix[i - 1][j] + 1
+                        );
+                    }
+                }
+            }
+            return matrix[b.length][a.length];
+        }
+
+        function findBestMatch(input) {
+            let bestMatch = null;
+            let lowestDistance = Infinity;
+
+            for (const key in responses) {
+                const distance = levenshteinDistance(input.toLowerCase(), key.toLowerCase());
+                if (distance < lowestDistance && distance <= 2) {
+                    lowestDistance = distance;
+                    bestMatch = key;
+                }
+            }
+
+            return bestMatch;
+        }
+
+        function copyToClipboard() {
+            navigator.clipboard.writeText("Never gonna give you up");
+        }
+
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (message === "") return;
+
+            chatbox.innerHTML += `<div class="message"><strong>You:</strong> ${message}</div>`;
+            
+            let response;
+
+            if (messageCount >= 3 && !infiniteTokens) {
+                response = "You've used all your tokens. Please <a href='https://www.youtube.com/watch?v=dQw4w9WgXcQ' target='_blank'>click here for infinite tokens</a>.";
+                userInput.disabled = true;
+                userInput.placeholder = "No more tokens available";
+                userInput.style.color = "#808080";
+                sendButton.disabled = true;
+                sendButton.style.backgroundColor = "#808080";
+            } else if (insults.some(insult => message.toLowerCase().includes(insult))) {
+                response = "Sorry, I cannot assist you with that kind of behavior.";
+            } else if (message.toLowerCase().includes("joke")) {
+                response = jokes[Math.floor(Math.random() * jokes.length)];
+            } else if (message.toLowerCase().includes("html") || message.toLowerCase().includes("website")) {
+                response = "I've generated an HTML website for you. Please <a href='https://www.youtube.com/watch?v=dQw4w9WgXcQ' target='_blank'>click this link to test it out</a>. You can copy the code of the website by right-clicking on the page and selecting 'View Page Source' in your browser.";
+            } else if (message.toLowerCase().includes("rickroll") || message.toLowerCase().includes("rickrolled") || message.toLowerCase().includes("rickrolld")) {
+                response = "xD";
+            } else if (message.toLowerCase().includes("give me more tokens") || message.toLowerCase().includes("give me infinite tokens")) {
+                response = "I gave you infinite tokens!";
+                infiniteTokens = true;
+            } else {
+                const bestMatch = findBestMatch(message);
+                if (bestMatch) {
+                    response = responses[bestMatch];
+                } else {
+                    response = "Sorry, there was an error in generating a response. Please <a href='https://www.youtube.com/watch?v=dQw4w9WgXcQ' target='_blank'>click here</a> to fix the error.";
+                }
+            }
+
+            if (message.toLowerCase() === "uwu") {
+                uwuMode = true;
+                document.body.style.backgroundColor = "#FFC0CB";
+                document.body.style.color = "#FF69B4";
+                document.querySelector("h1").style.color = "#FF1493";
+                document.getElementById("chatbox").style.backgroundColor = "#FFB6C1";
+                document.getElementById("chatbox").style.borderColor = "#FF69B4";
+                document.getElementById("userInput").style.backgroundColor = "#FFB6C1";
+                document.getElementById("userInput").style.borderColor = "#FF69B4";
+                document.getElementById("userInput").style.color = "#FF1493";
+                document.getElementById("sendButton").style.backgroundColor = "#FF1493";
+                document.getElementById("languageNote").style.color = "#FF69B4";
+                document.querySelectorAll('.copyButton').forEach(button => {
+                    button.style.backgroundColor = "#FF1493";
+                });
+            }
+
+            messageCount++;
+
+            setTimeout(() => {
+                chatbox.innerHTML += `<div class="message"><strong>Cat Shark AI:</strong> ${response}<button class="copyButton" onclick="copyToClipboard()">Copy</button></div>`;
+                chatbox.scrollTop = chatbox.scrollHeight;
+
+                if (uwuMode) {
+                    document.querySelectorAll('.copyButton').forEach(button => {
+                        button.style.backgroundColor = "#FF1493";
+                    });
+                }
+            }, 1000);
+
+            userInput.value = "";
+        }
+
+        userInput.addEventListener("keyup", function(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
